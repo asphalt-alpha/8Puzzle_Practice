@@ -42,6 +42,8 @@ unit goal[X][Y] = {
 	{7,8,0}
 };
 
+long long int legendCnt;
+
 int main() {
 	clock_t start, end;
 	float res;
@@ -65,7 +67,9 @@ int main() {
 	end = clock();
 	res = (float)(end - start) / CLOCKS_PER_SEC;
 
-	printf("수행시간 : %f\n", res);
+	printf("EnQueue() 횟수 : %lld 회\n", legendCnt);
+
+	printf("수행시간 : %f 초\n", res);
 	return 0;
 }
 
@@ -227,7 +231,7 @@ void EnQueue(Queue * q, unit(*arr)[Y], int pre, int cnt)
 		q->tail->next = newNode;
 		q->tail = newNode;
 	}
-
+	legendCnt++;
 	q->len++;
 }
 
