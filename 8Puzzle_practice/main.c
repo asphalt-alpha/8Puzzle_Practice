@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <malloc.h>
+#include <windows.h>
 
 #define X 3
 #define Y 3
@@ -13,11 +15,11 @@
 typedef unsigned char unit;
 
 typedef struct Node{
-	struct Node* next;
-	unit matrix[X][Y];
-	int pre;
-	int cnt;
-	struct Node* pNode;
+	struct Node* next;	//4
+	unit matrix[X][Y];  //9
+	unit pre;			//1
+	unit cnt;			//1
+	struct Node* pNode;	//4
 }Node;
 
 typedef struct Queue{
@@ -28,19 +30,32 @@ typedef struct Queue{
 
 void QueueInit(Queue* q);
 int IsEmpty(Queue* q);
-void InsertMatrix(Node* node, unit(*arr)[Y]);
+void InsertMatrix(Node* node, unit (*arr)[Y]);
 unit(*GetMatrix(Node* node))[Y];
 void EnQueue(Queue* q, unit (*arr)[Y], int pre, int cnt, Node* par);
-//unit(*DeQueue(Queue* q, int* thisPre, int* thisCnt))[Y];
 Node* DeQueue(Queue* q);
 int IsEnd(unit(*start)[Y]);
 void PrintArr(unit (*arr)[Y]);
 void Swap(unit* a, unit* b);
 Node* Bfs(unit(*arr)[Y]);
 
+SIZE_T GetByte() {
+	SIZE_T x = 0;
+	MEMORY_BASIC_INFORMATION memInfo;
+	SIZE_T vAddress = 0;
+	ZeroMemory(&memInfo, sizeof(memInfo));
+	while (vAddress < (SIZE_T)0x8000000 && VirtualQuery((LPCVOID)vAddress, &memInfo, sizeof(memInfo))) {
+		if (memInfo.State == MEM_COMMIT && memInfo.Type == MEM_PRIVATE) {
+			x += memInfo.RegionSize;
+		}
+		vAddress += memInfo.RegionSize;
+	}
+	return x;
+}
+
 unit goal[X][Y] = {
-	{1,2,3},
-	{4,5,6},
+	{1,2,0},
+	{4,5,0},
 	{7,8,0}
 };
 
@@ -51,36 +66,26 @@ int main() {
 	float res;
 
 	unit map[X][Y] = {
-		{5,2,4},
-		{8,0,7},
-		{3,6,1}
+	{1,0,4},
+	{2,0,8},
+	{7,0,5}
 	};
 
-	unit map1[X][Y] = {
-		{1,2,3},
-		{4,5,6},
-		{7,0,8}
-	};
-	
 	start = clock();
-
 	Node* cNode = Bfs(map);
-
 	end = clock();
 	res = (float)(end - start) / CLOCKS_PER_SEC;
 
 	printf("EnQueue() 횟수 : %lld 회\n", legendCnt);
-
 	printf("수행시간 : %f 초\n", res);
 
 	Node* parentNode = cNode;
-	//PrintArr(cNode->matrix);
+
 	while (parentNode != NULL) {
 		PrintArr(parentNode->matrix);
-		printf("\n");
 		parentNode = parentNode->pNode;
 	}
-
+	printf("%d\n", GetByte());
 	return 0;
 }
 
@@ -95,8 +100,7 @@ Node* Bfs(unit(*arr)[Y]) {
 
 	int cnt = 0;
 	int a=0;
-	//getchar(a);
-
+	
 	while (!IsEmpty(q)) {
 		int i = 0, j = 0;
 		Node* dataNode = DeQueue(q);
@@ -104,25 +108,18 @@ Node* Bfs(unit(*arr)[Y]) {
 		unit(*data)[Y] = GetMatrix(dataNode);
 		int preM = dataNode->pre;
 		int preC = dataNode->cnt;
-		//unit(*data)[Y] = DeQueue(q, &preM, &preC);
-		//printf("Dequeued\n");
-		//PrintArr(data);
-
+		
 		if (IsEnd(data)) {
 			printf("END!\n");
 			cnt = preC;
 			PrintArr(data);
 			break;
 		}
-		//cnt++;
-
-		int nx = 100, ny = 100;
-
-		int flg = 0;
+		
+		unit nx = 0, ny = 0, flg=0;
 		for (i = 0; i < X; i++) {
 			for (j = 0; j < Y; j++) {
 				if (data[i][j] == 0) {
-					//printf("find space : [%d] [%d]\n", i, j);
 					nx = i;
 					ny = j;
 					flg = 1;
@@ -132,54 +129,36 @@ Node* Bfs(unit(*arr)[Y]) {
 			if (flg) break;
 		}
 		if (!flg) {
-			printf("error!\n");
 			exit(-1);
 		}
 
-		//printf("find space : [%d] [%d]\n", nx, ny);
-		
 		if (!((nx - 1) < 0) && preM != BOT) {
 			Swap(&data[nx][ny], &data[nx - 1][ny]);
-			//printf("Swapping...\nPreMove = %d\n", preM);
-			//PrintArr(data);
 			EnQueue(q, data, TOP, preC + 1, dataNode);
 			Swap(&data[nx][ny], &data[nx - 1][ny]);
-			//PrintArr(data);
 		}
 		if (!((nx + 1) >= X) && preM != TOP) {
 			Swap(&data[nx][ny], &data[nx + 1][ny]);
-			//printf("Swapping...\nPreMove = %d\n", preM);
-			//PrintArr(data);
 			EnQueue(q, data, BOT, preC + 1, dataNode);
 			Swap(&data[nx][ny], &data[nx + 1][ny]);
-			//PrintArr(data);
 		}
 		if (!((ny - 1) < 0) && preM != RIG) {
 			Swap(&data[nx][ny], &data[nx][ny - 1]);
-			//printf("Swapping...\nPreMove = %d\n", preM);
-			//PrintArr(data);
 			EnQueue(q, data, LEF, preC + 1, dataNode);
 			Swap(&data[nx][ny], &data[nx][ny - 1]);
-			//PrintArr(data);
 		}
 		if (!((ny + 1) >= Y) && preM != LEF) {
 			Swap(&data[nx][ny], &data[nx][ny + 1]);
-			//("Swapping...\nPreMove = %d\n", preM);
-			//PrintArr(data);
 			EnQueue(q, data, RIG, preC + 1, dataNode);
 			Swap(&data[nx][ny], &data[nx][ny + 1]);
-			//PrintArr(data);
 		}
-		
 	}
 	printf("%d\n", cnt);
 	return endNode;
 }
 
 void Swap(unit* a, unit* b) {
-	unit temp;
-	if (a == NULL) exit(-1);
-	temp = *a;
+	unit temp = *a;
 	*a = *b;
 	*b = temp;
 }
@@ -207,7 +186,7 @@ int IsEmpty(Queue * q)
 	else return 0;
 }
 
-void InsertMatrix(Node * node, unit(*arr)[Y])
+void InsertMatrix(Node * node, unit (*arr)[Y])
 {
 	unsigned char i = 0, j = 0;
 	for (i = 0; i < X; i++) {
@@ -219,27 +198,17 @@ void InsertMatrix(Node * node, unit(*arr)[Y])
 
 unit(*GetMatrix(Node * node))[Y]
 {
-	/*
-	unit arr[X][Y];
-	int i = 0, j = 0;
-	for (i = 0; i < X; i++) {
-		for (j = 0; j < Y; j++) {
-			arr[i][j] = node->matrix[i][j];
-		}
-	}*/
 	return node->matrix;
 }
 
-void EnQueue(Queue * q, unit(*arr)[Y], int pre, int cnt, Node* par)
+void EnQueue(Queue * q, unit (*arr)[Y], int pre, int cnt, Node* par)
 {
 	Node* newNode = (Node*)calloc(1,sizeof(Node));
-	//MInit(newNode, 1, sizeof(Node));
 	InsertMatrix(newNode, arr);
 	newNode->pre = pre;
 	newNode->cnt = cnt;
 	newNode->pNode = par;
 	
-
 	if (IsEmpty(q)) {
 		q->head = newNode;
 		q->tail = newNode;
@@ -253,28 +222,18 @@ void EnQueue(Queue * q, unit(*arr)[Y], int pre, int cnt, Node* par)
 	q->len++;
 }
 
-/*
-unit(*DeQueue(Queue * q, int* thisPre, int* thisCnt))[Y]
-{
+Node* DeQueue(Queue* q) {
 	if (IsEmpty(q)) {
-		printf("Queue is Empty\n");
+		printf("Queue is already Empty.\n");
 		exit(-1);
 	}
-
 	Node* delNode = q->head;
 	q->head = q->head->next;
-	unit (*arr)[Y] = GetMatrix(delNode);
-	//PrintArr(arr);
-
 	q->len--;
-	*thisPre = delNode->pre;
-	*thisCnt = delNode->cnt;
-	//free(delNode);
-	return arr;
+	return delNode;
 }
-*/
 
-void PrintArr(unit (*arr)[Y])
+void PrintArr(unit(*arr)[Y])
 {
 	int i = 0, j = 0;
 	for (i = 0; i < X; i++) {
@@ -284,18 +243,4 @@ void PrintArr(unit (*arr)[Y])
 		printf("\n");
 	}
 	printf("\n");
-}
-
-Node* DeQueue(Queue* q) {
-	if (IsEmpty(q)) {
-		printf("Queue is already Empty.\n");
-		exit(-1);
-	}
-
-	Node* delNode = q->head;
-	q->head = q->head->next;
-
-	q->len--;
-
-	return delNode;
 }
