@@ -66,9 +66,9 @@ int main() {
 	float res;
 
 	unit map[X][Y] = {
-	{6,4,7},
-	{8,0,2},
-	{5,3,1}
+	{0,8,2},
+	{5,3,7},
+	{4,1,6}
 	};
 
 	Stack* stack = (Stack*)calloc(1, sizeof(Stack));
