@@ -1,1 +1,3 @@
-# 8Puzzle_Practice
+# 8 Puzzle Practice
+
+> C 언어를 이용하여 BFS 탐색 알고리즘을 사용하여 제작한 8-슬라이드 퍼즐 게임 해독기 입니다.
